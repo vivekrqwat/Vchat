@@ -1,2 +1,0 @@
-# Vchat
-chating application 
