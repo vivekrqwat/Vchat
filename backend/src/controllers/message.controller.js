@@ -1,4 +1,5 @@
 import cloudinary from "../lib/cloudnary.js";
+import { getRecvId, io } from "../lib/socket.js";
 import Message from "../models/message.model.js"
 import User from "../models/user.model.js";
 export const getUser=async(req,res)=>{
@@ -46,7 +47,12 @@ export const sendMessage=async(req,res)=>{
             text,
             image:imageUrl
         })
+        console.log("kk")
         await newMessage.save();
+        const recvsocketid=getRecvId(receiverId);
+        if(recvsocketid){
+            io.to(recvsocketid).emit('newmsg',newMessage);
+        }
         res.status(200).json({message:"done"});
     }
     catch(e){

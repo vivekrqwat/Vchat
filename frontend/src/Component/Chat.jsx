@@ -9,12 +9,14 @@ import { formatMessageTime } from '../lib/util'
 import { useRef } from 'react'
 
 function Chat() {
-    const {message,user,isMessageLoading,selectUser,getMessage}=useChat()
-    const{authUser}=UseAuthcheck()
+    const {message,user,isMessageLoading,selectUser,getMessage,substomsg,unsubtomsg}=useChat()
+    const{authUser,socket}=UseAuthcheck()
      const messageEndRef = useRef(null);
     useEffect(()=>{
         getMessage(selectUser._id)
-    },[selectUser._id,getMessage])
+        substomsg(socket)
+        return()=>unsubtomsg(socket);
+    },[selectUser._id,getMessage,substomsg,unsubtomsg])
 
     if(isMessageLoading){
         return(
@@ -42,8 +44,8 @@ function Chat() {
                 <img
                   src={
                     message.senderId === authUser._id
-                      ? authUser.profilepic || "/avatar.png"
-                      : selectUser.profilepic || "/avatar.png"
+                      ? authUser.profilepic || "/image.png"
+                      : selectUser.profilepic || "/image.png"
                   }
                   alt="profile pic"
                 />

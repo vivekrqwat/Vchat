@@ -49,6 +49,7 @@ export const login=async (req,res)=>{
     if(!checkpassword)return res.status(404).json({message:"invalid passowrd"});
     generateToken(user._id,res);
     res.status(200).json({
+        _id:user._id,
         fullname:user.fullname,
         email:user.email,
         profilepic:user.profilepic
@@ -73,7 +74,7 @@ export const logout=async(req,res)=>{
 }
 }
 export const update=async(req,res)=>{
-   console.log('pic')
+
     try{
         const {profilepic}=req.body
         const userId=req.user._id;

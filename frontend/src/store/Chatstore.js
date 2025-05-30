@@ -1,6 +1,7 @@
 import {create} from'zustand'
 import toast from 'react-hot-toast'
 import { axiosInstance } from '../lib/axios'
+import { UseAuthcheck } from './Authstore'
 export const useChat=create((set,get)=>({
     message:[],
     user:[],
@@ -39,10 +40,23 @@ export const useChat=create((set,get)=>({
             const res=await axiosInstance.post(`/message/send/${selectUser._id}`,messagedata);
             set({message:[...message,res.data]});
         }catch(e){
-          toast.error("something went worng while sending message")
+          toast.error("something went worng while sending message",e)
 
         }
 
+    },
+    substomsg:(socket)=>{
+        const{selectUser}=get()
+        if(!selectUser)return;
+        // const socket=UseAuthcheck().get().socket;
+        socket.on('newmsg',(newMessage)=>{
+            set({message:[...get().message,newMessage]});
+        })
+
+    },
+    unsubtomsg:(socket)=>{
+        //  const socket=UseAuthcheck().get().socket;
+         socket.off('newmsg')
     },
     setSelectuser:(selectUser)=>{set({selectUser})}
 
