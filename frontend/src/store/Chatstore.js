@@ -1,63 +1,84 @@
-import {create} from'zustand'
+import {create} from 'zustand'
 import toast from 'react-hot-toast'
 import { axiosInstance } from '../lib/axios'
-import { UseAuthcheck } from './Authstore'
-export const useChat=create((set,get)=>({
-    message:[],
-    user:[],
-    selectUser:null,
-    isUserloading:false,
-    isMessageLoading:false,
 
-    getUser:async()=>{
-        set({isUserloading:true})
-        try{
-            const res=await axiosInstance.get('/message/users');
-            console.log(res.data,"user");
-            set({user:res.data});
-            
+export const useChat = create((set, get) => ({
+    message: [],
+    user: [],
+    selectUser: null,
+    isUserloading: false,
+    isMessageLoading: false,
 
-        }catch(e){
-            toast.error("something went worng")
-        }finally{ set({isUserloading:false})}
-    },
-
-    getMessage:async(id)=>{
-         set({isMessageLoading:true})
-         console.log(id,"id pf ")
-         try{
-            const res=await axiosInstance.get(`/message/${id}`);
-             set({message:res.data});
-         }
-         catch(e){
-             toast.error("something went worng while getting message")
-         }finally{ set({isMessageLoading:false})}
-    },
-
-    sendMessage:async(messagedata)=>{
-        const{selectUser,message}=get();
-        try{
-            const res=await axiosInstance.post(`/message/send/${selectUser._id}`,messagedata);
-            set({message:[...message,res.data]});
-        }catch(e){
-          toast.error("something went worng while sending message",e)
-
+    getUser: async () => {
+        set({isUserloading: true})
+        try {
+            const res = await axiosInstance.get('/message/users');
+            set({user: res.data});
+        } catch(error) {
+            toast.error("Something went wrong")
+        } finally { 
+            set({isUserloading: false})
         }
-
     },
-    substomsg:(socket)=>{
-        const{selectUser}=get()
-        if(!selectUser)return;
-        // const socket=UseAuthcheck().get().socket;
-        socket.on('newmsg',(newMessage)=>{
-            set({message:[...get().message,newMessage]});
-        })
 
+    getMessage: async (id) => {
+        if (!id) return;
+        set({isMessageLoading: true})
+        try {
+            const res = await axiosInstance.get(`/message/${id}`);
+            if (Array.isArray(res.data)) {
+                set({message: res.data});
+            }
+        } catch(error) {
+            toast.error("Something went wrong while getting messages")
+        } finally { 
+            set({isMessageLoading: false})
+        }
     },
-    unsubtomsg:(socket)=>{
-        //  const socket=UseAuthcheck().get().socket;
-         socket.off('newmsg')
-    },
-    setSelectuser:(selectUser)=>{set({selectUser})}
 
+    sendMessage: async (messageData) => {
+        const {selectUser, message} = get();
+        if (!selectUser?._id) return;
+        
+        try {
+            const res = await axiosInstance.post(`/message/send/${selectUser._id}`, messageData);
+            if (res.data) {
+                // Update local message state with the new message
+                set({message: [...message, res.data]});
+            }
+        } catch(error) {
+            toast.error("Something went wrong while sending message")
+        }
+    },
+
+    substomsg: (socket) => {
+        if (!socket) return;
+        
+        // Remove any existing listeners to prevent duplicates
+        socket.off('newmsg');
+        
+        socket.on('newmsg', (newMessage) => {
+            const currentMessages = get().message;
+            const selectUser = get().selectUser;
+            
+            // Only update if it's relevant to current chat
+            if (selectUser && 
+                (newMessage.senderId === selectUser._id || 
+                 newMessage.receiverId === selectUser._id)) {
+                set({message: [...currentMessages, newMessage]});
+            }
+        });
+    },
+
+    unsubtomsg: (socket) => {
+        if (!socket) return;
+        socket.off('newmsg');
+    },
+
+    setSelectuser: (selectUser) => {
+        set({selectUser});
+        if (selectUser?._id) {
+            get().getMessage(selectUser._id);
+        }
+    }
 }))

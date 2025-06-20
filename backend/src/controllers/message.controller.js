@@ -40,20 +40,20 @@ export const sendMessage=async(req,res)=>{
         if(image){
             const uploadResponse=await cloudinary.uploader.upload(image);
             imageUrl=uploadResponse.secure_url;
-        }
-        const newMessage=new Message({
+        }        const newMessage = new Message({
             senderId,
             receiverId,
             text,
             image:imageUrl
-        })
-        console.log("kk")
-        await newMessage.save();
-        const recvsocketid=getRecvId(receiverId);
+        });
+        
+        const savedMessage = await newMessage.save();
+        const recvsocketid = getRecvId(receiverId);
+        
         if(recvsocketid){
-            io.to(recvsocketid).emit('newmsg',newMessage);
+            io.to(recvsocketid).emit('newmsg', savedMessage);
         }
-        res.status(200).json({message:"done"});
+        res.status(200).json(savedMessage);
     }
     catch(e){
            res.status(500).json({message:"internal error"});

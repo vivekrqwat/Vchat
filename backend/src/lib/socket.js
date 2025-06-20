@@ -19,7 +19,16 @@ io.on('connection',(socket)=>{
     console.log(userid,"userid")
       if (userid) userSocketMap[userid] = socket.id;
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
-        socket.on("disconnect", () => {
+
+    // Handle new messages
+    socket.on("newMessage", (message) => {
+        const receiverSocketId = userSocketMap[message.receiverId];
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", message);
+        }
+    });
+
+    socket.on("disconnect", () => {
     console.log("A user disconnected", socket.id);
     delete userSocketMap[userid];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));

@@ -113,7 +113,7 @@ function Login() {
             <p className="text-base-content/60">
               Already have an account?{" "}
               <Link to="/signup" className="link link-primary">
-                Sign in
+                login
               </Link>
             </p>
           </div>

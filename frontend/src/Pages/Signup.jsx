@@ -59,7 +59,7 @@ function Signup() {
                 <input
                   type="text"
                   className={`input input-bordered w-full pl-10`}
-                  placeholder="John Doe"
+                  placeholder="User name"
                   value={formData.fullname}
                   onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
                 />
